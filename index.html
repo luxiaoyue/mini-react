@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="./index.js"></script>
+    <script>
+      const element = createElement(
+        "div",
+        { class: "wrapper" },
+        createElement("span", { class: "title" }, "我是标题"),
+        createElement("div", { class: "content" }, "我是内容")
+      );
+
+      console.log("element", element);
+
+      render(element, document.getElementById("root"));
+    </script>
+  </body>
+</html>
