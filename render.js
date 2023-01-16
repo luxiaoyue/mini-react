@@ -5,7 +5,6 @@ document.write("<script type='text/javascript' src='utils.js'></script>");
 
 // element:通过createElemnet创建的元素对象
 // container 真实的dom容器
-
 function render1(element, container) {
   const isTextNode = checkIsTextNode(element);
 
@@ -23,17 +22,43 @@ function render1(element, container) {
     const attrs = Object.keys(restProps);
     attrs.forEach((k) => dom.setAttribute(k, restProps[k]));
 
-    // 递归
-    children.forEach((child) => render(child, dom));
+    // render1递归渲染子节点
+    children.forEach((child) => render1(child, dom));
   }
   container.appendChild(dom);
 }
 
-//render之前的写法没办法中断
 
+
+
+//render之前的写法没办法中断
+/*
+  思路
+  将整个渲染过程分解成n个单元
+  当每个小单元渲染完毕以后，就看看现在是否有交互，有无其他需要中断渲染的操作
+*/
+
+/**
+ *我们通过createElement创建的对象还不是一个虚拟dom哦, 他只是一个基本的描述对象
+  简单来说fiber就是一种数据结构
+  const Fiber = {
+      type: null, // 该fiber节点对应的标签类型
+      parent: null, // 父级fiber节点
+      sibling: null, // 兄弟fiber节点
+      child: null, // 自己fiber节点
+      dom: null, // 该fiber节点对应的真实dom元素
+      props: {}, // 该fiber节点的所有属性
+      effectTag: null, // 该fiber节点对应的更新状态, 在更新阶段会用到
+  }
+ */
+
+
+//新的render函数
+//假设变量中存储的就是每一次需要渲染的UI单元，通过不断变动这个变量的值来控制本次渲染的究竟是什么
 let nextUnitOfWork = null;
+
 // render的任务其实还是一整个dom树，改变策略，通过render来开启一项自动工作的调度
-// 该调度任务会源源不断的进行dom的渲染，
+// 该调度任务会源源不断的进行dom的渲染，在没有东西渲染的时候停下来
 // 会在需要停止的时候停下来
 function render(element, container) {
   // 调度开关的开启取决于nextUnitOfWork有没有值
