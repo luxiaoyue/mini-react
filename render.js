@@ -28,9 +28,6 @@ function render1(element, container) {
   container.appendChild(dom);
 }
 
-
-
-
 //render之前的写法没办法中断
 /*
   思路
@@ -51,7 +48,6 @@ function render1(element, container) {
       effectTag: null, // 该fiber节点对应的更新状态, 在更新阶段会用到
   }
  */
-
 
 //新的render函数
 //假设变量中存储的就是每一次需要渲染的UI单元，通过不断变动这个变量的值来控制本次渲染的究竟是什么
@@ -82,7 +78,6 @@ function workLoop(deadline) {
   let shouldYield = false; //是否需要停止渲染
   while (nextUnitOfWork && !shouldYield) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
-
     shouldYield = deadline.timeRemaining() < 1;
     // deadline是浏览器闲暇情况的一个参数，它里面的timeRemaining方法的调用会返回一个毫秒数
     // 代表浏览器当前闲置的一个剩余的估计时间；
@@ -91,6 +86,7 @@ function workLoop(deadline) {
 }
 
 function createDom(fiber) {
+  //根据传进来的fiber节点，构建出属于该节点的唯一真实dom
   const isTextNode = checkIsTextNode(fiber);
   const domElement = isTextNode
     ? document.createTextNode("")
@@ -103,19 +99,24 @@ function createDom(fiber) {
     Object.keys(attrs).forEach((key) =>
       domElement.setAttribute(key, attrs[key])
     );
+    //不递归处理子元素，只处理本人
   }
   return domElement;
 }
 
 function performUnitOfWork(fiber) {
+  //1.创建真实的dom
   fiber.dom == null && (fiber.dom = createDom(fiber));
+  //2.将nextUnitOfWork的dom推入到父级的dom中
   if (fiber.parent) {
     fiber.parent.dom.appendChild(fiber.dom);
   }
-  //兄弟节点
+  //3.兄弟节点、子节点
   const elements = fiber.props.children;
   let index = 0;
-  let prevFiber = null;
+  let prevFiber = null; //维护fiber链表的一个索引入口
+
+  //element里装的全是通过createElement创建的描述对象
   while (index < elements.length) {
     let newFiber = {
       type: elements[index].type,
@@ -142,4 +143,5 @@ function performUnitOfWork(fiber) {
     nextFiber = nextFiber.parent;
   }
 }
+//通过requestdleCallback直接开启调度任务
 requestIdleCallback(workLoop);
